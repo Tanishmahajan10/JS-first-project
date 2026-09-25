@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Strong Password Checker</title>
+
+
+     <link rel="stylesheet" href="checker.css">
+</head>
+
+<body>
+
+ <div class="container">
+
+        <h1>Strong Password Checker</h1>
+
+        <div class="input-group">
+
+            <input
+                type="text"
+                id="password"
+                placeholder="Enter password"
+            >
+
+            <button id="checkBtn">
+                Check Password
+            </button>
+
+        </div>
+
+       
+
+        <p id="result"></p>
+
+    </div>
+    <script>
+
+       // DOM
+let parent = document;
+let htmlbody = document.body;
+let htmlhead = document.head;
+
+let passwordInput = document.getElementById("password");
+let checkBtn = document.getElementById("checkBtn");
+let result = document.getElementById("result");
+
+
+
+// Strong Password Checker
+function strongPasswordChecker(password) {
+
+    const n = password.length;
+
+    let lower = false;
+    let upper = false;
+    let digit = false;
+
+
+    // Check lowercase, uppercase and digit
+    for (let char of password) {
+
+        if (char >= 'a' && char <= 'z') {
+            lower = true;
+        }
+
+        if (char >= 'A' && char <= 'Z') {
+            upper = true;
+        }
+
+        if (char >= '0' && char <= '9') {
+            digit = true;
+        }
+    }
+
+
+    // Count missing character types
+    let missing = 0;
+
+    if (!lower) {
+        missing++;
+    }
+
+    if (!upper) {
+        missing++;
+    }
+
+    if (!digit) {
+        missing++;
+    }
+
+
+    // Find repeating sequences
+    let runs = [];
+
+    let i = 0;
+
+    while (i < n) {
+
+        let j = i;
+
+        while (j < n && password[j] === password[i]) {
+            j++;
+        }
+
+        let len = j - i;
+
+        if (len >= 3) {
+            runs.push(len);
+        }
+
+        i = j;
+    }
+
+
+    // Password is too short
+    if (n < 6) {
+        return Math.max(6 - n, missing);
+    }
+
+
+    // Password length is between 6 and 20
+    if (n <= 20) {
+
+        let replace = 0;
+
+        for (let len of runs) {
+            replace += Math.floor(len / 3);
+        }
+
+        return Math.max(missing, replace);
+    }
+
+
+    // Password is too long
+    let deletions = n - 20;
+
+
+    // First: use deletions on len % 3 == 0
+    for (let i = 0; i < runs.length; i++) {
+
+        if (deletions > 0 && runs[i] % 3 === 0) {
+
+            runs[i]--;
+            deletions--;
+        }
+    }
+
+
+    // Second: use 2 deletions on len % 3 == 1
+    for (let i = 0; i < runs.length; i++) {
+
+        if (deletions >= 2 && runs[i] % 3 === 1) {
+
+            let use = Math.min(2, deletions);
+
+            runs[i] -= use;
+            deletions -= use;
+        }
+    }
+
+
+    // Third: use 3 deletions on remaining runs
+    for (let i = 0; i < runs.length; i++) {
+
+        if (deletions > 0) {
+
+            let use = Math.min(3, deletions);
+
+            runs[i] -= use;
+            deletions -= use;
+        }
+    }
+
+
+    // Count remaining replacements
+    let replace = 0;
+
+    for (let len of runs) {
+        replace += Math.floor(len / 3);
+    }
+
+
+    return (n - 20) + Math.max(missing, replace);
+}
+
+
+
+// Function to check password
+function checkPassword() {
+
+    let password = passwordInput.value;
+
+
+    // Check if input is empty
+     if (password.trim() === "") {
+
+        showAlert("Please enter a password");
+
+        result.textContent = "";
+
+        return;
+    }
+
+
+
+    // Check password
+    let steps = strongPasswordChecker(password);
+
+
+    result.textContent =
+        "Minimum steps required to make this password strong: " + steps;
+}
+
+
+
+// Button click
+checkBtn.addEventListener("click", checkPassword);
+
+
+
+// Press Enter
+passwordInput.addEventListener("keydown", function (event) {
+
+    if (event.key === "Enter") {
+        checkPassword();
+    }
+
+});
+
+function showAlert(message) {
+
+    let alertBox = document.createElement("div");
+
+    alertBox.className = "custom-alert";
+
+    alertBox.innerHTML = `
+        <span class="alert-icon">⚠</span>
+        <span>${message}</span>
+        <button class="close-alert">×</button>
+    `;
+
+    document.body.append(alertBox);
+
+    alertBox
+        .querySelector(".close-alert")
+        .addEventListener("click", function () {
+            alertBox.remove();
+        });
+
+    setTimeout(function () {
+        alertBox.remove();
+    }, 1500);
+}
+
+
+
+    </script>
+
+</body>
+</html>
